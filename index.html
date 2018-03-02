@@ -111,10 +111,6 @@
     $("#import-input").on("change", function(changeEvent){
         if (!window.FileReader) return; // not supported
         (function (file) {
-          // Give user some interface feedback before reading.
-          var div = $("<div/>", {"id": file.name}).appendTo("#loadme");
-          $("<li/>").append($("<a/>", {href: "#"+file.name}).text(file.name)).appendTo("#toc");
-          $("<h2/>").text(file.name).appendTo(div);
           var loader = new FileReader();
           loader.readAsText(file);
           loader.onload = function (loadEvent) {
@@ -125,6 +121,9 @@
               return;
             }
             parameters = JSON.parse(loadEvent.target.result);
+            $("#key-name").val(file.name);
+            refreshParametersInputs();
+            updateAndPreview();
           };
         })(changeEvent.target.files[0]);
     });
