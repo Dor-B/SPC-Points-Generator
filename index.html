@@ -36,7 +36,11 @@
     KEY: <input value="Key Name" id="key-name">
     <button id="save">save to KEY</button>
     <button id="switch-saves">switch to KEY</button>
-    <button id="delete-save">delete KEY save</button>
+    <button id="delete-save">delete KEY save</button> <br>
+    <label for="import-input" class="btn">Import</label>
+    <input id="import-input" class="invisible-btn"type="file">
+    <label for="export" class="btn">Save as file</label>
+    <button id="export" class="invisible-btn">Export</button>
     
 </div>
 <input type="range" min="0" max="1000" value="0" class="slider" id="path-slider">
@@ -85,6 +89,7 @@
         if(getStorage(key)!= null){
             switchToStorage(key);
             refreshSaves();
+            refreshParametersInputs();
             updateAndPreview();
         }else{
             alert(key + " not found!");
@@ -93,10 +98,37 @@
     $("#delete-save").on('click', function(){
         deleteStorage($("#key-name").val());
         refreshSaves();
+        refreshParametersInputs();
+        updateAndPreview();
     });
     $("#refresh-saves").on('click', function(){
         refreshSaves();
     });
+    
+    $("#export").on('click', function(){
+       download($("#key-name").val(), JSON.stringify(parameters));
+    });
+    $("#import-input").on("change", function(changeEvent){
+        if (!window.FileReader) return; // not supported
+        (function (file) {
+          // Give user some interface feedback before reading.
+          var div = $("<div/>", {"id": file.name}).appendTo("#loadme");
+          $("<li/>").append($("<a/>", {href: "#"+file.name}).text(file.name)).appendTo("#toc");
+          $("<h2/>").text(file.name).appendTo(div);
+          var loader = new FileReader();
+          loader.readAsText(file);
+          loader.onload = function (loadEvent) {
+            if (loadEvent.target.readyState != 2)
+              return;
+            if (loadEvent.target.error) {
+              alert("Error while reading file " + file.name + ": " + loadEvent.target.error);
+              return;
+            }
+            parameters = JSON.parse(loadEvent.target.result);
+          };
+        })(changeEvent.target.files[0]);
+    });
+    
     $("#next-point").on('click', function(){
         if(editPointIndex + 1 <= parameters.basePoints.length - 1){
             editPointIndex += 1;
@@ -181,6 +213,7 @@
     var canvas, ctx, background, totalLength;
     function updateAndPreview(){
         makeAllPointsCalculations();
+        calcTotalLength();
         $("#code-preview").html(pathPointsToCode());
         drawField();
         drawPoints();
